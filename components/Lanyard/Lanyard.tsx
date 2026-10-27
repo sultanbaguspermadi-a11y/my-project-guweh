@@ -64,12 +64,23 @@ export function Lanyard() {
 
     const measure = () => {
       const r = boxEl.getBoundingClientRect();
-      const atRest = P.x === 0 || (Math.abs(P.x - A.x) < 1 && Math.abs(P.y - (A.y + L)) < 3);
+      // "at rest" is judged against the OLD anchor, before it moves
+      const atRest = P.x === 0 || (Math.abs(P.x - A.x) < 1.5 && Math.abs(P.y - (A.y + L)) < 4);
       W = r.width; H = r.height; CW = cardEl.offsetWidth;
-      L = clamp(H * 0.13, 90, 170);
-      LMAX = L * 1.9;
-      A.x = Math.max(CW / 2 + 8, W - clamp(W * 0.03, 12, 40) - CW / 2);
-      if (atRest) { P.x = A.x; P.y = A.y + L; }
+      let ax: number;
+      if (W < 640) { L = clamp(H * 0.11, 80, 104); ax = W * 0.62; } // phones: upper centre-right, part of the composition
+      else if (W < 1024) { L = clamp(H * 0.13, 90, 150); ax = W - clamp(W * 0.07, 28, 72) - CW / 2; } // tablet: moved inward
+      else { L = clamp(H * 0.13, 90, 170); ax = W - clamp(W * 0.03, 16, 56) - CW / 2; } // desktop: top-right
+      A.x = clamp(ax, CW * 0.62 + 4, W - CW * 0.62 - 4);
+      LMAX = Math.min(H * 0.6, Math.max(L * 1.9, 260));
+      if (atRest) { P.x = A.x; P.y = A.y + L; V.x = V.y = 0; }
+      else { // mid-swing: keep the rope vector valid instead of teleporting
+        let dx = P.x - A.x, dy = P.y - A.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d > LMAX) { dx *= LMAX / d; dy *= LMAX / d; }
+        P.x = clamp(A.x + dx, CW * 0.62 + 4, W - CW * 0.62 - 4); P.y = A.y + dy;
+        run();
+      }
       draw();
     };
 
@@ -79,7 +90,7 @@ export function Lanyard() {
         let dx = target.x - A.x, dy = target.y - A.y;
         const d = Math.hypot(dx, dy) || 1;
         if (d > LMAX) { dx = (dx / d) * LMAX; dy = (dy / d) * LMAX; }
-        const nx = clamp(A.x + dx, CW / 2 + 4, W - CW / 2 - 4), ny = A.y + dy;
+        const nx = clamp(A.x + dx, CW * 0.62 + 4, W - CW * 0.62 - 4), ny = Math.max(A.y + dy, A.y + L * 0.5);
         V.x = clamp((nx - P.x) / dt, -4000, 4000);
         V.y = clamp((ny - P.y) / dt, -4000, 4000);
         P.x = nx; P.y = ny;
@@ -99,7 +110,7 @@ export function Lanyard() {
         const drag = Math.exp(-AIR * dt);
         V.x *= drag; V.y *= drag;
         P.x += V.x * dt; P.y += V.y * dt;
-        const lo = CW / 2 + 4, hi = W - CW / 2 - 4; // soft walls at the screen edges
+        const lo = CW * 0.62 + 4, hi = W - CW * 0.62 - 4; // soft walls at the screen edges
         if (P.x < lo || P.x > hi) { P.x = clamp(P.x, lo, hi); V.x *= -0.35; }
       }
       // tilt hangs along the rope, lags behind and overshoots; horizontal speed leans it
@@ -162,13 +173,20 @@ export function Lanyard() {
     const ro = new ResizeObserver(measure);
     ro.observe(boxEl);
     measure();
-    if (!reduce) {
-      // one-off drop-in: released off-centre, so it swings because of physics, not a loop
-      P.x = A.x - Math.min(160, W * 0.25); // swings in from inside the page P.y = A.y + L * 0.35;
+    // One-off drop-in: released off-centre, so it swings because of physics, not a loop. Waits for the cover.
+    const drop = () => {
+      if (reduce) return;
+      P.x = A.x - Math.min(160, W * 0.25);
+      P.y = A.y + L * 0.35;
+      V.x = V.y = 0; rot = 0; rotV = 0;
       run();
-    }
+    };
+    const waiting = document.documentElement.dataset.cover !== "skip" && !document.documentElement.dataset.entered;
+    if (waiting) addEventListener("playground:enter", drop, { once: true });
+    else drop();
     return () => {
       cancelAnimationFrame(raf);
+      removeEventListener("playground:enter", drop);
       clearTimeout(noteTimer.current);
       ro.disconnect();
       cardEl.removeEventListener("pointerdown", onDown);
@@ -215,10 +233,10 @@ export function Lanyard() {
             </header>
             <p data-name lang="ar" dir="rtl" className="nastaliq select-none text-center">سلطان</p>
             <div>
-              <p className="text-[0.95rem] font-bold leading-tight tracking-wide">SULTAN BAGUS PERMADI</p>
+              <p className="pass-name">SULTAN BAGUS PERMADI</p>
               <div className="perforation" aria-hidden />
               <div className="flex items-end justify-between gap-3">
-                <ul className="space-y-0.5 text-[0.72rem] font-medium leading-snug">
+                <ul className="pass-list">
                   <li>Arabic Scrabble</li>
                   <li>Lughoti Vokasi</li>
                 </ul>

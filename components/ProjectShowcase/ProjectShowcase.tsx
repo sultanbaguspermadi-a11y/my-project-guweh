@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { PROJECTS } from "@/data/projects";
 import { TILE_VALUES } from "@/data/scrabbleDemo";
@@ -20,8 +20,10 @@ const SCRABBLE_FACTS = [
 export function ScrabbleShowcase() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y1 = useTransform(scrollYProgress, [0, 1], [90, -90]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [-40, 70]);
+  const [k, setK] = useState(1); // scroll travel is scaled down on narrow screens so tiles never reach the facts
+  useEffect(() => { const f = () => setK(innerWidth < 640 ? 0.3 : innerWidth < 1100 ? 0.6 : 1); f(); addEventListener("resize", f); return () => removeEventListener("resize", f); }, []);
+  const y1 = useTransform(scrollYProgress, [0, 1], [90 * k, -90 * k]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [-40 * k, 70 * k]);
   const r1 = useTransform(scrollYProgress, [0, 1], [-9, 6]);
   const p = PROJECTS[0];
   return (

@@ -24,3 +24,9 @@ npm run build
 - The OG image (`app/opengraph-image.tsx`) is Latin-only on purpose. Drop a designed `opengraph-image.png` in `app/` to replace it.
 - No screenshots were supplied, and both live apps block framing, so the showcases use real data (tile bag, vocabulary) instead of fake UI. Put real screenshots in `public/shots/` and add them to `ProjectShowcase.tsx`.
 - Words in `public/words.json` must stay in the same format as the Lughoti repo (`[arab, latin, arti, kategori, contoh_arab, contoh_indonesia]`).
+
+## Audit notes (round 3)
+- `components/OpeningCover/`: DOM + Motion only. Enter by click, Enter/Space/↓, wheel or swipe. Skipped for `#hash` links and after the first visit in a session (script in `layout.tsx` sets `data-cover="skip"`).
+- `components/WebGL/timeline.ts`: WebGL is probed once per page (`canWebGL`), tiers use width + pointer + device hints, GPU preference per tier, context loss waits 2.5 s for a restore before falling back. Failures log `[webgl]` to the console.
+- Lanyard anchor is computed in `measure()` per width band: desktop top-right, tablet inward, phones at 62% of the hero width.
+- Test harness used for QA lives outside the repo (puppeteer-core + @sparticuz/chromium, SwiftShader WebGL).

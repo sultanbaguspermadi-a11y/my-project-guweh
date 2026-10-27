@@ -7,12 +7,14 @@ import { TileTransition } from "@/components/Transition/TileTransition";
 import { ProjectIndex } from "@/components/ProjectIndex/ProjectIndex";
 import { Footer } from "@/components/Footer/Footer";
 import { Cursor } from "@/components/ui/Cursor";
+import { OpeningCover } from "@/components/OpeningCover/OpeningCover";
 import { Reveal } from "@/components/ui/Reveal";
 import { PROJECTS } from "@/data/projects";
 
 export default function Page() {
   return (
     <>
+      <OpeningCover />
       <Navigation />
       <Cursor />
       <main>

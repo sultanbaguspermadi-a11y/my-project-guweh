@@ -41,6 +41,7 @@ function TileRow({ interactive }: { interactive?: boolean }) {
 export function TileTransition() {
   const sec = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const glWrap = useRef<HTMLDivElement>(null);
   const capA = useRef<HTMLSpanElement>(null);
   const capB = useRef<HTMLSpanElement>(null);
   const link = useRef<HTMLAnchorElement>(null);
@@ -58,8 +59,9 @@ export function TileTransition() {
     const decide = () => { setMode(!mq.matches && canWebGL() ? "gl" : "static"); setTier(getTier()); };
     decide();
     mq.addEventListener("change", decide);
-    addEventListener("resize", decide);
-    return () => { mq.removeEventListener("change", decide); removeEventListener("resize", decide); };
+    const resize = () => setTier(getTier()); // never re-probe WebGL here; only the quality tier follows the viewport
+    addEventListener("resize", resize);
+    return () => { mq.removeEventListener("change", decide); removeEventListener("resize", resize); };
   }, []);
 
   const update = useCallback(() => {
@@ -72,8 +74,11 @@ export function TileTransition() {
     if (capA.current) capA.current.style.opacity = String(1 - ss(0.3, 0.5, p));
     if (capB.current) capB.current.style.opacity = String(ss(0.55, 0.75, p));
     if (link.current) link.current.style.color = p > 0.55 ? "#17130e" : "#f6ecd2";
+    if (glWrap.current) glWrap.current.style.opacity = String(1 - ss(0.9, 1, p)); // hand off to the DOM section
     invalidate.current?.();
   }, []);
+
+  useEffect(() => { if (!near) setReady(false); }, [near]); // canvas unmounted: show the DOM row again until it is rebuilt
 
   useEffect(() => {
     if (mode !== "gl" || !sec.current) return;
@@ -108,14 +113,14 @@ export function TileTransition() {
       <div ref={stage} className="tt-stage" data-ready={ready ? "1" : undefined}>
         <TileRow />
         {near && (
-          <WebGLBoundary onError={fail}>
+          <div ref={glWrap} className="tt-gl"><WebGLBoundary onError={fail}>
             <GL
               progress={progress.current}
               tier={tier}
               onFail={fail}
               onReady={(inv) => { invalidate.current = inv; setReady(true); update(); }}
             />
-          </WebGLBoundary>
+          </WebGLBoundary></div>
         )}
         <p className="tt-cap" aria-hidden>
           <span ref={capA}>tiles</span>

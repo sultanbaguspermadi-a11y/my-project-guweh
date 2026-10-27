@@ -2,17 +2,25 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { WebGLBoundary } from "../WebGL/WebGLFallback";
-import { canWebGL } from "../WebGL/timeline";
+import { canWebGL, getTier, isWeakDevice, type Tier } from "../WebGL/timeline";
 
 const HeroGL = dynamic(() => import("../WebGL/HeroDepth3D"), { ssr: false });
 
-/** Optional depth behind the hero. Loads after the DOM is up; skipped on phones and with reduced motion. */
+/**
+ * Decorative depth behind the hero. The DOM paints first; the chunk loads straight after hydration (no timer).
+ * Phones get a lighter 3-tile version unless the device looks weak or reduced motion is on.
+ */
 export function HeroDepth() {
-  const [on, setOn] = useState(false);
+  const [tier, setTier] = useState<Tier | null>(null);
   useEffect(() => {
-    if (innerWidth < 640 || matchMedia("(prefers-reduced-motion: reduce)").matches || !canWebGL()) return;
-    const t = setTimeout(() => setOn(true), 800);
-    return () => clearTimeout(t);
+    const t = getTier();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !canWebGL() || (t === "mobile" && isWeakDevice())) return;
+    setTier(t);
   }, []);
-  return on ? <WebGLBoundary onError={() => setOn(false)}><HeroGL onFail={() => setOn(false)} /></WebGLBoundary> : null;
+  if (!tier) return null;
+  return (
+    <WebGLBoundary onError={() => setTier(null)}>
+      <HeroGL tier={tier} onFail={() => setTier(null)} />
+    </WebGLBoundary>
+  );
 }

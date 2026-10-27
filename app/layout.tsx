@@ -25,8 +25,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: "try{if(location.hash||sessionStorage.getItem('pg-entered'))document.documentElement.dataset.cover='skip'}catch(e){}" }} />
+        <noscript><style>{".cover{display:none!important}"}</style></noscript>
         <a href="#scrabble" className="skip">Skip to the games</a>
         <Providers>{children}</Providers>
       </body>

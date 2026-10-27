@@ -85,7 +85,7 @@ export function ArabicScrabbleMiniGame() {
   const first = (BOARD[0].length - letters.length) >> 1;
 
   return (
-    <div className="mini" aria-label="Arabic Scrabble mini game">
+    <div className="mini-wrap"><div className="mini" aria-label="Arabic Scrabble mini game">
       <div className="mini-head">
         <p className="kicker">Make the word</p>
         <p lang="ar" dir="rtl" className="amiri mini-word">{round.shown}</p>
@@ -167,6 +167,6 @@ export function ArabicScrabbleMiniGame() {
           </div>
         )}
       </div>
-    </div>
+    </div></div>
   );
 }
