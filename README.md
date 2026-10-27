@@ -1,6 +1,6 @@
 # Sultan's Project Playground
 
-Next.js 15 · TypeScript · Tailwind 4 · Motion. No WebGL, no Three.js.
+Next.js 15 · TypeScript · Tailwind 4 · Motion. three + @react-three/fiber (+ drei's RoundedBox) power two optional WebGL layers. The lanyard is still plain DOM.
 
 ```bash
 npm install
@@ -11,7 +11,9 @@ npm run build
 ## Where things live
 | Path | What |
 |---|---|
-| `components/Lanyard/` | 2D rope + spring physics, pointer-driven, sleeps at rest. Arrow keys nudge, Enter flips. |
+| `components/Lanyard/` | 2D rope + spring physics, anchored top-right (`A.x` in `measure()`), pointer-driven, sleeps at rest. Arrow keys nudge, Enter flips. |
+| `components/Transition/TileTransition.tsx` | Sticky 170vh stage; scroll progress 0-1 drives everything. Falls back to the plain tile row. |
+| `components/WebGL/` | `timeline.ts` (phase math), `TransitionScene`, `ScrabbleTile3D`, `GlyphField`, `HeroDepth3D`. Arabic is drawn with canvas 2D so the browser shapes it. |
 | `components/ArabicScrabbleMiniGame/` | Drag or tap tiles into the word row. Tile values are the real ones from the game's `modes.js`. |
 | `components/LughotiExplorer/` | Searches the real `public/words.json` (copied from the Lughoti repo), loaded lazily. |
 | `data/projects.ts` | Names, links, index rows. Add a project here and the index and closing links follow. |

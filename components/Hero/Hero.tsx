@@ -1,8 +1,10 @@
 import { Lanyard } from "../Lanyard/Lanyard";
+import { HeroDepth } from "./HeroDepth";
 
 export function Hero() {
   return (
     <section id="top" className="hero" aria-labelledby="hero-title">
+      <HeroDepth />
       <Lanyard />
       <div className="hero-copy">
         <p className="kicker">A little digital playground</p>

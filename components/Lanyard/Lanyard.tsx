@@ -66,9 +66,9 @@ export function Lanyard() {
       const r = boxEl.getBoundingClientRect();
       const atRest = P.x === 0 || (Math.abs(P.x - A.x) < 1 && Math.abs(P.y - (A.y + L)) < 3);
       W = r.width; H = r.height; CW = cardEl.offsetWidth;
-      L = clamp(H * 0.2, 120, 240);
+      L = clamp(H * 0.13, 90, 170);
       LMAX = L * 1.9;
-      A.x = W / 2;
+      A.x = Math.max(CW / 2 + 8, W - clamp(W * 0.03, 12, 40) - CW / 2);
       if (atRest) { P.x = A.x; P.y = A.y + L; }
       draw();
     };
@@ -79,7 +79,7 @@ export function Lanyard() {
         let dx = target.x - A.x, dy = target.y - A.y;
         const d = Math.hypot(dx, dy) || 1;
         if (d > LMAX) { dx = (dx / d) * LMAX; dy = (dy / d) * LMAX; }
-        const nx = A.x + dx, ny = A.y + dy;
+        const nx = clamp(A.x + dx, CW / 2 + 4, W - CW / 2 - 4), ny = A.y + dy;
         V.x = clamp((nx - P.x) / dt, -4000, 4000);
         V.y = clamp((ny - P.y) / dt, -4000, 4000);
         P.x = nx; P.y = ny;
@@ -99,6 +99,8 @@ export function Lanyard() {
         const drag = Math.exp(-AIR * dt);
         V.x *= drag; V.y *= drag;
         P.x += V.x * dt; P.y += V.y * dt;
+        const lo = CW / 2 + 4, hi = W - CW / 2 - 4; // soft walls at the screen edges
+        if (P.x < lo || P.x > hi) { P.x = clamp(P.x, lo, hi); V.x *= -0.35; }
       }
       // tilt hangs along the rope, lags behind and overshoots; horizontal speed leans it
       const ropeAngle = -Math.atan2(P.x - A.x, P.y - A.y) * (180 / Math.PI);
@@ -148,6 +150,7 @@ export function Lanyard() {
       if (moved < 6 && performance.now() - down.t < 300 && down.onName && ++taps.current === 5) {
         setYear("٢٠٢٦");
         say("سلطان. you found the other 2026.");
+        dispatchEvent(new Event("playground:egg")); // the hero tiles react too
       }
       run();
     };
@@ -161,7 +164,7 @@ export function Lanyard() {
     measure();
     if (!reduce) {
       // one-off drop-in: released off-centre, so it swings because of physics, not a loop
-      P.x = A.x + Math.min(160, W * 0.25); P.y = A.y + L * 0.35;
+      P.x = A.x - Math.min(160, W * 0.25); // swings in from inside the page P.y = A.y + L * 0.35;
       run();
     }
     return () => {
