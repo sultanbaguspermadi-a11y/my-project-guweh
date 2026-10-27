@@ -206,3 +206,24 @@ body { background: var(--paper); color: var(--ink); font-family: var(--f); font-
   html { scroll-behavior: auto; }
   .lanyard-flip, .bridge-tile, .lex-word, .lex-card, .btn, .chip, .big-link, .index-row, .index-arrow { transition: none !important; }
 }
+
+/* ---------- top-right lanyard + nav rebalance ---------- */
+.lanyard-box { inset: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px); }
+.nav { justify-content: flex-start; flex-wrap: wrap; column-gap: clamp(1.5rem, 4vw, 3rem); row-gap: 0.1rem; max-width: calc(100% - clamp(12rem, 24vw, 19rem)); }
+@media (max-width: 640px) { .lanyard-card { --cw: clamp(9rem, 38vw, 11rem); } .nav { max-width: 62%; } .nav nav ul { gap: 0.9rem; } }
+@media (max-height: 520px) and (orientation: landscape) { .nav { flex-wrap: nowrap; } }
+
+/* ---------- WebGL layers ---------- */
+.hero-gl { position: absolute; inset: 0; z-index: 1; pointer-events: none; animation: gl-in 1.2s ease both; }
+.hero-gl canvas { pointer-events: none; }
+@keyframes gl-in { from { opacity: 0; } }
+.tt { position: relative; height: 170vh; }
+.tt-stage { position: sticky; top: 0; height: 100dvh; overflow: hidden; display: grid; place-items: center; background: var(--wood-2); }
+.tt-stage .bridge-row { position: relative; z-index: 1; transition: opacity 0.6s; }
+.tt-stage[data-ready="1"] .bridge-row { opacity: 0; }
+.tt-canvas { position: absolute !important; inset: 0; pointer-events: none; z-index: 2; }
+.tt-cap { position: absolute; z-index: 3; left: var(--gx); bottom: max(2rem, env(safe-area-inset-bottom)); display: grid; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #8aa; pointer-events: none; }
+.tt-cap span { grid-area: 1 / 1; }
+.tt-cap span:last-child { color: var(--sky-ink); }
+.tt-link { position: absolute; z-index: 3; bottom: max(1.2rem, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); transition: color 0.3s; }
+@media (prefers-reduced-motion: reduce) { .hero-gl { animation: none; } }
